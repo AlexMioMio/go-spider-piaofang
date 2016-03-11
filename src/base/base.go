@@ -15,44 +15,37 @@ type BaseMovie struct {
 	Jpg  string
 }
 type BaseCity struct {
-	Id   int
-	Name string
+	Id        int
+	Name      string
 	TypeIndex int
 }
 
 type BaseShowTime struct {
-	Id   int
-	Type int
-	TypeName string
-	TypeShowIndex int
-	TypeCinemaIndex int
-	TypeMovieIndex int
-	TypeMovieName string
-	TypeHallID int
-	TypeSaleEndTime int64
+	Id               int
+	Type             int
+	TypeName         string
+	TypeShowIndex    int
+	TypeCinemaIndex  int
+	TypeMovieIndex   int
+	TypeMovieName    string
+	TypeHallID       int
+	TypeSaleEndTime  int64
 	TypeSaleEndTimeS time.Time
-	Price int
-	SeatCount int
-	TypeCityIndex int
-	
-	//        Type int
-	//        TypeName string
-	
-	//        TypeIndexS string
+	Price            int
+	SeatCount        int
+	TypeCityIndex    int
 }
 
 type BaseCinema struct {
-	Id   int
-	Name string
+	Id        int
+	Name      string
 	TypeIndex int
 }
 
 func getNowTimeTsString() string {
 	ts := strconv.FormatInt(time.Now().Unix(), 10)
-	//	fmt.Println(ts)
 	return ts
 }
-
 
 func StringListToArray(l *list.List) []string {
 	strs := make([]string, l.Len())
@@ -88,7 +81,6 @@ func InsertList(l *list.List, execpre string, f func(interface{}) string) int64 
 			insertstrs[o] = f(e.Value)
 			o++
 		}
-		//		fmt.Println(execpre + strings.Join(insertstrs, ","))
 		res, err := db.Exec(execpre + strings.Join(insertstrs, ","))
 		if err != nil {
 			panic(err.Error()) // Just for example purpose. You should use proper error handling instead of panic
