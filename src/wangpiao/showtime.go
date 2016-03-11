@@ -1,12 +1,17 @@
-package main
+package wangpiao
 
 import (
-	"base"
+	"../base"
 	"database/sql"
 	"encoding/json"
 	"fmt"
 	"time"
 	_ "github.com/go-sql-driver/mysql"
+	"container/list"
+	"strconv"
+	"net/http"
+	"io/ioutil"
+	"strings"
 )
 
 func getShowTimeTypeIndexFromDB() []int {
@@ -27,24 +32,22 @@ func getShowTimeTypeIndexFromDB() []int {
 		if err != nil {
 			panic(err.Error()) // proper error handling instead of panic in your app
 		}
-		//		fmt.Println(city.Name)
 		lshowindex.PushBack(index)
 	}
 	return base.IntListToArray(lshowindex)
 }
+
 type ShowTime struct {
 	base.BaseShowTime
 }
 
 func InsertShowTimeList(l *list.List) {
-	InsertList(l, "insert into showtime (id,type,typename,typeshowindex,typecinemaindex,typemovieindex,typemoviename,typehallid,typesaleendtime,price,seatcount,typecityindex)  values ", func(any interface{}) string {
+	base.InsertList(l, "insert into showtime (id,type,typename,typeshowindex,typecinemaindex,typemovieindex,typemoviename,typehallid,typesaleendtime,price,seatcount,typecityindex)  values ", func(any interface{}) string {
 		showtime := any.(*ShowTime)
 		fmt.Println("(0,0,'网票'," + strconv.Itoa(showtime.TypeShowIndex) + "," + strconv.Itoa(showtime.TypeCinemaIndex) + "," + strconv.Itoa(showtime.TypeMovieIndex) + ",'" + showtime.TypeMovieName + "'," + strconv.Itoa(showtime.TypeHallID) + "," + strconv.FormatInt(showtime.TypeSaleEndTime, 10) + "," + strconv.Itoa(showtime.Price) + "," + strconv.Itoa(showtime.SeatCount) + "," + strconv.Itoa(showtime.TypeCityIndex) + ")")
 		return "(0,0,'网票'," + strconv.Itoa(showtime.TypeShowIndex) + "," + strconv.Itoa(showtime.TypeCinemaIndex) + "," + strconv.Itoa(showtime.TypeMovieIndex) + ",'" + showtime.TypeMovieName + "'," + strconv.Itoa(showtime.TypeHallID) + "," + strconv.FormatInt(showtime.TypeSaleEndTime, 10) + "," + strconv.Itoa(showtime.Price) + "," + strconv.Itoa(showtime.SeatCount) + "," + strconv.Itoa(showtime.TypeCityIndex) + ")"
 	})
 }
-
-
 
 func GetShowTime(lcinema *list.List) {
 	for e := lcinema.Front(); e != nil; e = e.Next() {
@@ -74,18 +77,18 @@ func GetShowTime(lcinema *list.List) {
 }
 
 type showtime struct {
-	ShowIndex int
-	CinemaID  int
-	HallID    int
-	FilmID    int
-	FilmName  string
+	ShowIndex   int
+	CinemaID    int
+	HallID      int
+	FilmID      int
+	FilmName    string
 	//LG: 原版,
 	//ShowTime: 2015-10-15 22:00:00,
 	SaleEndTime string
 	//Status: 1,
 	//UPrice: 45,
 	//VPrice: 45,
-	CityID int
+	CityID      int
 	//UWPrice: 50,
 	//SPType: 1|2|5,
 	//SPPrice: 5|0|0,
@@ -93,7 +96,7 @@ type showtime struct {
 	//CPrice: 50,
 	//IsImax: false,
 	//Dimensional: 3D,
-	SeatCount int
+	SeatCount   int
 }
 
 type showtimeout struct {
@@ -110,8 +113,7 @@ func getShowTimeSingleCinema(cinemaid int, datestr string) []showtime {
 		panic(err.Error()) // proper error handling instead of panic in your app
 	}
 	body, err := ioutil.ReadAll(resp.Body)
-	body = body[1 : len(body)-1]
-	//	var showtimes []showtime
+	body = body[1 : len(body) - 1]
 	var sto showtimeout
 	err = json.Unmarshal(body, &sto)
 	if err != nil {
@@ -126,10 +128,9 @@ func saveTodayShowTime() {
 	GetShowTime(lcinemas)
 }
 
-
 func getSingleShowTimeCurrentPeople(lmap map[int]int, showindex int, ch chan bool) {
 	if showindex != 0 {
-		greq, _ := http.NewRequest("GET", "http://dataservices.wangpiao.com/Data.aspx?getpageurl=Http%3A//dataservices.wangpiao.com/Portal/ajaxcms/ajax_SeatGrid.aspx&getpageparam=SeqNo%3D"+strconv.Itoa(showindex)+"&format=json&_="+getNowTimeTsString(), nil)
+		greq, _ := http.NewRequest("GET", "http://dataservices.wangpiao.com/Data.aspx?getpageurl=Http%3A//dataservices.wangpiao.com/Portal/ajaxcms/ajax_SeatGrid.aspx&getpageparam=SeqNo%3D" + strconv.Itoa(showindex) + "&format=json&_=" + getNowTimeTsString(), nil)
 		greq.Header.Add("Referer", "http://www.wangpiao.com")
 		c := &http.Client{}
 		resp, err := c.Do(greq)
@@ -138,10 +139,8 @@ func getSingleShowTimeCurrentPeople(lmap map[int]int, showindex int, ch chan boo
 		}
 		body, err := ioutil.ReadAll(resp.Body)
 		s := string(body[0:len(body)])
-		//		strings.Count(s,"#FF0000")
 		saledcount := strings.Count(s, "#F")
 		lmap[showindex] = saledcount
-		//		fmt.Println(saledcount)
 	}
 	ch <- true
 }
@@ -161,7 +160,7 @@ func updateAllShowTimePeople() {
 		for j := 0; j < pinum; j++ {
 			chs[j] = make(chan bool)
 			if (i != (picount - 1)) || j < yu {
-				go getSingleShowTimeCurrentPeople(pimap, arr[pinum*i+j], chs[j])
+				go getSingleShowTimeCurrentPeople(pimap, arr[pinum * i + j], chs[j])
 			} else {
 				go getSingleShowTimeCurrentPeople(pimap, 0, chs[j])
 			}
@@ -173,7 +172,6 @@ func updateAllShowTimePeople() {
 	}
 	fmt.Println("all show time  update finished")
 }
-
 
 func UpdateShowTimeSaledByShowIndex(mapinfo map[int]int) int64 {
 	db, err := sql.Open("mysql", "root:1CUI@/piaofang")

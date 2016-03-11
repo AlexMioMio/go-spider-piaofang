@@ -1,22 +1,12 @@
-package main
+package wangpiao
 
 import (
-	"base"
+	"../base"
 	"database/sql"
-	"encoding/json"
 	"fmt"
-	"time"
-	//	"github.com/bitly/go-simplejson"
 	_ "github.com/go-sql-driver/mysql"
-	//	"github.com/bitly/go-simplejson"
-	//	"go.marzhillstudios.com/pkg/go-html-transform/css/selector"
-	//	"go.marzhillstudios.com/pkg/go-html-transform/h5"
-	//	"go.marzhillstudios.com/pkg/go-html-transform/html/transform"
-	//	"gopkg.in/mgo.v2"
-	//	"gopkg.in/mgo.v2/bson"
 	"container/list"
 	"github.com/PuerkitoBio/goquery"
-	"io/ioutil"
 	"net/http"
 	"strconv"
 	"strings"
@@ -26,6 +16,7 @@ type TMovie struct {
 	base.BaseMovie
 	tid string
 }
+
 func GetMovie() *list.List {
 	var lmovies = list.New().Init()
 	resp, err := http.Get("http://www.wangpiao.com/Movie/movies/")

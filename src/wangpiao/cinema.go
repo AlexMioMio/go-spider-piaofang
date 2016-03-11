@@ -1,25 +1,16 @@
-package main
+package wangpiao
 
 import (
-	"base"
+	"../base"
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"time"
-	//	"github.com/bitly/go-simplejson"
 	_ "github.com/go-sql-driver/mysql"
-	//	"github.com/bitly/go-simplejson"
-	//	"go.marzhillstudios.com/pkg/go-html-transform/css/selector"
-	//	"go.marzhillstudios.com/pkg/go-html-transform/h5"
-	//	"go.marzhillstudios.com/pkg/go-html-transform/html/transform"
-	//	"gopkg.in/mgo.v2"
-	//	"gopkg.in/mgo.v2/bson"
 	"container/list"
-	"github.com/PuerkitoBio/goquery"
 	"io/ioutil"
 	"net/http"
 	"strconv"
-	"strings"
+	"github.com/PuerkitoBio/goquery"
 )
 
 type TCinema struct {
@@ -29,7 +20,6 @@ type TCinema struct {
 func saveCinema() {
 	InsertCityList(GetCity())
 }
-
 
 func getCinemasFromDB() *list.List {
 	lcitys := list.New().Init()
@@ -49,43 +39,18 @@ func getCinemasFromDB() *list.List {
 		if err != nil {
 			panic(err.Error()) // proper error handling instead of panic in your app
 		}
-		//		fmt.Println(city.Name)
 		lcitys.PushBack(cinema)
 	}
 	return lcitys
 }
-//
-//func GetCinema() *list.List {
-//	lcitys := list.New().Init()
-//	resp, err := http.Get("http://dataservices.wangpiao.com/Portal/ajaxcms/ajaxjson_cinemalist.aspx?CityID=);)
-//	if err != nil {
-//		panic(err)
-//	}
-//	doc, err := goquery.NewDocumentFromResponse(resp)
-//	if err != nil {
-//		panic(err)
-//	}
-//	cityatags := doc.Find("body").Find("div[class=tab-content]").Find("li").Find("a")
-//	cityatags.Each(func(num int, s *goquery.Selection) {
-//		city := new(TCity)
-//		city.Name = s.Text()
-//		id, _ := strconv.Atoi(s.AttrOr("cityid", ""))
-//		city.TypeIndex = id
-//		lcitys.PushBack(city)
-//	})
-//	return lcitys
-//}
-
 
 func InsertCinemaList(l *list.List) {
-	InsertList(l, "insert into cinema(id, name, typeindex, typeindexs)  values ", func(any interface{}) string {
+	base.InsertList(l, "insert into cinema(id, name, typeindex, typeindexs)  values ", func(any interface{}) string {
 		cinema := any.(*TCinema)
-		//		fmt.Println(cinema.Name)
 		fmt.Println("(0,'" + cinema.Name + "'," + strconv.Itoa(cinema.TypeIndex) + ",'" + strconv.Itoa(cinema.TypeIndex) + "')")
 		return "(0,'" + cinema.Name + "'," + strconv.Itoa(cinema.TypeIndex) + ",'" + strconv.Itoa(cinema.TypeIndex) + "')"
 	})
 }
-
 
 func getCinemaSingleCity(cityid int) []cinema {
 	resp, err := http.Get("http://dataservices.wangpiao.com/Portal/ajaxcms/ajaxjson_cinemalist.aspx?CityID" + strconv.Itoa(cityid))
@@ -94,16 +59,7 @@ func getCinemaSingleCity(cityid int) []cinema {
 		panic(err.Error()) // proper error handling instead of panic in your app
 	}
 	body, err := ioutil.ReadAll(resp.Body)
-	body = body[1 : len(body)-1]
-	//	jso, err := simplejson.NewJson(body)
-	//	cinemas, err := jso.Array()
-	//	fmt.Println(len(cinemas))
-	//	for _, v := range cinemas {
-	//		jmap := v.(map[string]interface{})
-	//		for key, value := range jmap {
-	//			fmt.Println(key)
-	//		}
-	//	}
+	body = body[1 : len(body) - 1]
 	var cinemas []cinema
 	err = json.Unmarshal(body, &cinemas)
 	if err != nil {
@@ -127,6 +83,7 @@ func GetCinema(lcitys *list.List) {
 		InsertCinemaList(lcinemas)
 	}
 }
+
 type cinema struct {
 	CinemaIndex int
 	ICinemaName string

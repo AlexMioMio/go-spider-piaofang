@@ -17,10 +17,7 @@ type BaseMovie struct {
 type BaseCity struct {
 	Id   int
 	Name string
-	//        Type int
-	//        TypeName string
 	TypeIndex int
-	//        TypeIndexS string
 }
 
 type BaseShowTime struct {
